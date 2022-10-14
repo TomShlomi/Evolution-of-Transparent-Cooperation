@@ -80,3 +80,14 @@ class Environment:
         for i in range(num_rounds):
             print(f'Round {i+1}:', end=' ')
             self.round(num_games, death_rate, print_average_score)
+
+def main():
+    # Create a list of agents
+    agents = [Agent(Net(hidden_size=16), distance_mse) for _ in range(100)]
+    # Create an environment
+    env = Environment(agents, get_prisoners_dilemma, criterion=nn.MSELoss(), optimizer=torch.optim.SGD)
+    # Run the environment
+    env.run(100, 100, 0.1)
+
+if __name__ == '__main__':
+    main()
