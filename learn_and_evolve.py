@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import random
 import copy
+from parameter_functions import *
 
 
 # Define the agent class, which can learn and evolve
@@ -73,5 +74,9 @@ class Environment:
         death_count = int(len(self.agents) * death_rate)
         for i in range(death_count):
             self.agents[-i-1] = Agent(copy.deepcopy(self.agents[i].network), self.agents[i].distance_f)
-    
 
+    # Run the environment for a certain number of rounds
+    def run(self, num_rounds, num_games, death_rate, print_average_score=True):
+        for i in range(num_rounds):
+            print(f'Round {i+1}:', end=' ')
+            self.round(num_games, death_rate, print_average_score)
