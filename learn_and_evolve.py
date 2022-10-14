@@ -11,16 +11,16 @@ class Agent:
         self.network = network
         self.score = 0
         self.distance_f = distance_f
-        # Define the loss as the MSE between the predicted and actual reward
-        self.loss = lambda action, output, reward: (output[action] - reward)**2
 
 
 # Create an environment in which RL agents interact through one-shot games and occaisionally reproduce
 class Environment:
     # Initialize the environment with a list of agents and a matrix game generator
-    def __init__(self, agents, game_generator):
+    def __init__(self, agents, game_generator, criterion=nn.MSELoss(), optimizer=torch.optim.SGD):
         self.agents = agents
         self.game_generator = game_generator
+        self.criterion = criterion
+        self.optimizer = optimizer
     
     # Play a one-shot game between two agents
     def play_game(self, game, agent1, agent2)
@@ -43,5 +43,14 @@ class Environment:
         # Update the score of each agent
         agent1.score += reward1
         agent2.score += reward2
-        # Train the agents
-        
+        # Zero the gradients of each agent's network
+        agent1.network.zero_grad()
+        agent2.network.zero_grad()
+        # Calculate the loss of each agent's network
+        loss1 = self.criterion(output1[action1], torch.tensor([reward1]))
+        loss2 = self.criterion(output2[action2], torch.tensor([reward2]))
+        # Backpropagate the loss of each agent's network
+        loss1.backward()
+        loss2.backward()
+        # Update the parameters of each agent's network
+        self.optimizer.step()
