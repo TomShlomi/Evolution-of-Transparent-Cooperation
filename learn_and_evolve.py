@@ -41,7 +41,7 @@ class Environment:
         action2 = torch.argmax(output2)
         # Get the reward of each agent
         reward1 = game[0, action1, action2]
-        reward2 = game[1, action2, action1]
+        reward2 = game[1, action1, action2]
         # Update the score of each agent
         agent1.score += reward1
         agent2.score += reward2
@@ -70,7 +70,7 @@ class Environment:
         self.agents.sort(key=lambda agent: agent.score, reverse=True)
         # Print the average score(?) and zero out the scores
         if print_average_score:
-            print(sum(agent.score for agent in self.agents) / (len(self.agents) * num_games))
+            print((sum(agent.score for agent in self.agents) / (len(self.agents) * num_games)).item())
         for agent in self.agents:
             agent.score = 0
         death_count = int(len(self.agents) * death_rate)
@@ -85,11 +85,11 @@ class Environment:
 
 def main():
     # Create a list of agents
-    agents = [Agent(network=Net(hidden_size=16), distance_f=distance_mse) for _ in range(100)]
+    agents = [Agent(network=Net(hidden_size=16), distance_f=distance_null) for _ in range(100)]
     # Create an environment
     env = Environment(agents, get_prisoners_dilemma)
     # Run the environment
-    env.run(num_rounds=100, num_games=1, death_rate=0.1)
+    env.run(num_rounds=10000, num_games=1, death_rate=0)
 
 if __name__ == '__main__':
     main()

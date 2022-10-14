@@ -9,6 +9,10 @@ def distance_mse(network1, network2):
         total_params += param1.numel()
     return distance/total_params
 
+# Defines a null distance metric which always returns 0
+def distance_null(network1, network2):
+    return 0
+
 # Returns the game matrix of various dilemmas dilemma in tensor form. Shifts the rewards to [-1, 0] to aid learning
 def get_prisoners_dilemma():
     return torch.tensor([[[3, 0], [5, 1]], [[3, 5], [0, 1]]], dtype=torch.float)/6 - 1
