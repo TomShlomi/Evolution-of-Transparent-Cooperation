@@ -71,7 +71,8 @@ class Environment:
         # Print the average score(?) and zero out the scores
         if print_average_score:
             print(sum(agent.score for agent in self.agents) / (len(self.agents) * num_games))
-        map(lambda agent: setattr(agent, 'score', 0), self.agents)
+        for agent in self.agents:
+            agent.score = 0
         death_count = int(len(self.agents) * death_rate)
         for i in range(death_count):
             self.agents[-i-1] = Agent(copy.deepcopy(self.agents[i].network), self.agents[i].distance_f)
@@ -88,7 +89,7 @@ def main():
     # Create an environment
     env = Environment(agents, get_prisoners_dilemma)
     # Run the environment
-    env.run(100, 100, 0.1)
+    env.run(num_rounds=100, num_games=1, death_rate=0.1)
 
 if __name__ == '__main__':
     main()
