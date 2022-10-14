@@ -10,7 +10,7 @@ from parameter_functions import *
 # Define the agent class, which can learn and evolve
 class Agent:
     # Initialize the agent with a neural network and a distance metric
-    def __init__(self, network, distance_f, criterion=nn.MSELoss(), optimizer=torch.optim.SGD, lr=0.01):
+    def __init__(self, network, distance_f, criterion=nn.MSELoss(), optimizer=torch.optim.SGD, lr=0.001):
         self.network = network
         self.score = 0
         self.distance_f = distance_f
@@ -49,8 +49,8 @@ class Environment:
         agent1.network.zero_grad()
         agent2.network.zero_grad()
         # Calculate the loss of each agent's network
-        loss1 = agent1.criterion(output1[action1], torch.tensor([reward1]))
-        loss2 = agent2.criterion(output2[action2], torch.tensor([reward2]))
+        loss1 = agent1.criterion(output1[action1], reward1)
+        loss2 = agent2.criterion(output2[action2], reward2)
         # Backpropagate the loss of each agent's network
         loss1.backward()
         loss2.backward()
@@ -84,9 +84,9 @@ class Environment:
 
 def main():
     # Create a list of agents
-    agents = [Agent(Net(hidden_size=16), distance_mse) for _ in range(100)]
+    agents = [Agent(network=Net(hidden_size=16), distance_f=distance_mse) for _ in range(100)]
     # Create an environment
-    env = Environment(agents, get_prisoners_dilemma, criterion=nn.MSELoss(), optimizer=torch.optim.SGD)
+    env = Environment(agents, get_prisoners_dilemma)
     # Run the environment
     env.run(100, 100, 0.1)
 
