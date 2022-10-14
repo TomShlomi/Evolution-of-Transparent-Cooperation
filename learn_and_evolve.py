@@ -70,7 +70,7 @@ class Environment:
         self.agents.sort(key=lambda agent: agent.score, reverse=True)
         # Print the average score(?) and zero out the scores
         if print_average_score:
-            print(sum(agent.score for agent in self.agents) / len(self.agents))
+            print(sum(agent.score for agent in self.agents) / (len(self.agents) * num_games))
         map(lambda agent: setattr(agent, 'score', 0), self.agents)
         death_count = int(len(self.agents) * death_rate)
         for i in range(death_count):
