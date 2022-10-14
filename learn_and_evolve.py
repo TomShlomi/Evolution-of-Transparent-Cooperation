@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import random
+import copy
 
 
 # Define the agent class, which can learn and evolve
@@ -11,7 +13,6 @@ class Agent:
         self.network = network
         self.score = 0
         self.distance_f = distance_f
-
 
 # Create an environment in which RL agents interact through one-shot games and occaisionally reproduce
 class Environment:
@@ -23,7 +24,7 @@ class Environment:
         self.optimizer = optimizer
     
     # Play a one-shot game between two agents
-    def play_game(self, game, agent1, agent2)
+    def play_game(self, game, agent1, agent2):
         game_flattened = game.flatten()
         # Get the distance from the agents to each other (note that the distance is not necessarily symmetric)
         distance1 = agent1.distance_f(agent1.network, agent2.network)
@@ -54,3 +55,23 @@ class Environment:
         loss2.backward()
         # Update the parameters of each agent's network
         self.optimizer.step()
+
+    # Has all of the agents play one-shot games a certain number of times, then updates the set of agents
+    def round(self, num_games, death_rate, print_average_score=False):
+        for _ in range(num_games):
+            random.shuffle(self.agents)
+            # Iterate through every other agent
+            for i in range(0, len(self.agents), 2):
+                # Play a game between the current agent and the next agent
+                self.play_game(self.game_generator(), self.agents[i], self.agents[i+1])
+        # Sort the agents by score
+        self.agents.sort(key=lambda agent: agent.score, reverse=True)
+        # Print the average score(?) and zero out the scores
+        if print_average_score:
+            print(sum(agent.score for agent in self.agents) / len(self.agents))
+        map(lambda agent: setattr(agent, 'score', 0), self.agents)
+        death_count = int(len(self.agents) * death_rate)
+        for i in range(death_count):
+            self.agents[-i-1] = Agent(copy.deepcopy(self.agents[i].network), self.agents[i].distance_f)
+    
+
