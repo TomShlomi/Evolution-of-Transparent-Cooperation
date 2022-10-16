@@ -1,16 +1,23 @@
 import torch
 
-# Defines a distance metric between two neural networks which is the mean squared difference between the weights of the two networks
+# Defines a distance metric between two neural networks which is the mean squared difference between the weights of the two networks times a constant
 def distance_mse(network1, network2):
     distance = 0
     total_params = 0
     for param1, param2 in zip(network1.parameters(), network2.parameters()):
         distance += torch.mean((param1 - param2) ** 2)*param1.numel()
         total_params += param1.numel()
-    return distance/total_params
+    return distance/total_params/0.07
 
 # Defines a null distance metric which always returns 0
 def distance_null(network1, network2):
+    return 0
+
+# Defines a discrete distance metric which is 0 if the two networks are equal and 1 otherwise
+def distance_discrete(network1, network2):
+    for param1, param2 in zip(network1.parameters(), network2.parameters()):
+        if not torch.equal(param1, param2):
+            return 1
     return 0
 
 # Returns the game matrix of various dilemmas dilemma in tensor form. Shifts the rewards to [-1, 0] to aid learning

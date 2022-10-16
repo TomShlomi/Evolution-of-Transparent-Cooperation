@@ -1,10 +1,11 @@
+from os import environ
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import random
 import copy
-from parameter_functions import *
+from parameter_functions import distance_mse, distance_null, distance_discrete, get_prisoners_dilemma, get_stag_hunt, get_uniform_game, get_normal_game, Net
 
 
 # Define the agent class, which can learn and evolve
@@ -70,7 +71,8 @@ class Environment:
         self.agents.sort(key=lambda agent: agent.score, reverse=True)
         # Print the average score(?) and zero out the scores
         if print_average_score:
-            print((sum(agent.score for agent in self.agents) / (len(self.agents) * num_games)).item())
+            scores = [agent.score/num_games for agent in self.agents]
+            print((sum(scores) / len(scores)).item())
         for agent in self.agents:
             agent.score = 0
         death_count = int(len(self.agents) * death_rate)
@@ -83,13 +85,30 @@ class Environment:
             print(f'Round {i+1}:', end=' ')
             self.round(num_games, death_rate, print_average_score)
 
-def main():
+def train_and_save():
     # Create a list of agents
-    agents = [Agent(network=Net(hidden_size=16), distance_f=distance_null) for _ in range(100)]
+    net1 = Net(hidden_size=16)
+    net2 = Net(hidden_size=16)
+    agents = [Agent(net1, distance_f=distance_mse), Agent(net2, distance_f=distance_mse), Agent(net1, distance_f=distance_mse), Agent(net2, distance_f=distance_mse)]
     # Create an environment
     env = Environment(agents, get_prisoners_dilemma)
     # Run the environment
-    env.run(num_rounds=10000, num_games=1, death_rate=0)
+    env.run(num_rounds=10000, num_games=1, death_rate=0.0, print_average_score=True)
+    # Save the networks
+    for i, agent in enumerate(env.agents):
+        torch.save(agent.network.state_dict(), f'net{i}.pt')
+
+def load(n):
+    # Load the networks
+    nets = [Net(hidden_size=16) for _ in range(n)]
+    for i, net in enumerate(nets):
+        net.load_state_dict(torch.load(f'net{i}.pt'))
+    # Evaluate the networks
+    pdflattened0 = torch.concat((get_prisoners_dilemma().flatten(), torch.tensor([0])))
+    pdflattened1 = torch.concat((get_prisoners_dilemma().flatten(), torch.tensor([1])))
+    for i, net in enumerate(nets):
+        print(f'Net {i}: ' + str(net(pdflattened0).detach()) + ' ' + str(net(pdflattened1).detach()))
 
 if __name__ == '__main__':
-    main()
+    train_and_save()
+    load(2)
