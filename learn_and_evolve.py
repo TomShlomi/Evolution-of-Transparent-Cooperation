@@ -60,7 +60,7 @@ class Environment:
         agent2.optimizer.step()
 
     # Has all of the agents play one-shot games a certain number of times, then updates the set of agents
-    def round(self, num_games, death_rate, print_average_score=False):
+    def round(self, num_games, death_rate):
         for _ in range(num_games):
             random.shuffle(self.agents)
             # Iterate through every other agent
@@ -69,46 +69,21 @@ class Environment:
                 self.play_game(self.game_generator(), self.agents[i], self.agents[i+1])
         # Sort the agents by score
         self.agents.sort(key=lambda agent: agent.score, reverse=True)
-        # Print the average score(?) and zero out the scores
-        if print_average_score:
-            scores = [agent.score/num_games for agent in self.agents]
-            print((sum(scores) / len(scores)).item())
+        # Calculate the average score of the agents
+        average_score = sum([agent.score/num_games for agent in self.agents]) / len(self.agents)
+        # Zero the scores of all of the agents
         for agent in self.agents:
             agent.score = 0
+        # Kill the worst agents and replace them with copies of the best agents
         death_count = int(len(self.agents) * death_rate)
         for i in range(death_count):
             self.agents[-i-1] = Agent(copy.deepcopy(self.agents[i].network), self.agents[i].distance_f)
+        # Return the average score of the agents
+        return average_score.item()
 
     # Run the environment for a certain number of rounds
-    def run(self, num_rounds, num_games, death_rate, print_average_score=True):
+    def run(self, num_rounds, num_games, death_rate):
+        average_scores = []
         for i in range(num_rounds):
-            print(f'Round {i+1}:', end=' ')
-            self.round(num_games, death_rate, print_average_score)
-
-def train_and_save():
-    # Create a list of agents
-    net1 = Net(hidden_size=16)
-    net2 = Net(hidden_size=16)
-    agents = [Agent(net1, distance_f=distance_mse), Agent(net2, distance_f=distance_mse), Agent(net1, distance_f=distance_mse), Agent(net2, distance_f=distance_mse)]
-    # Create an environment
-    env = Environment(agents, get_prisoners_dilemma)
-    # Run the environment
-    env.run(num_rounds=10000, num_games=1, death_rate=0.0, print_average_score=True)
-    # Save the networks
-    for i, agent in enumerate(env.agents):
-        torch.save(agent.network.state_dict(), f'net{i}.pt')
-
-def load(n):
-    # Load the networks
-    nets = [Net(hidden_size=16) for _ in range(n)]
-    for i, net in enumerate(nets):
-        net.load_state_dict(torch.load(f'net{i}.pt'))
-    # Evaluate the networks
-    pdflattened0 = torch.concat((get_prisoners_dilemma().flatten(), torch.tensor([0])))
-    pdflattened1 = torch.concat((get_prisoners_dilemma().flatten(), torch.tensor([1])))
-    for i, net in enumerate(nets):
-        print(f'Net {i}: ' + str(net(pdflattened0).detach()) + ' ' + str(net(pdflattened1).detach()))
-
-if __name__ == '__main__':
-    train_and_save()
-    load(2)
+            average_scores.append(self.round(num_games, death_rate))
+        return average_scores
