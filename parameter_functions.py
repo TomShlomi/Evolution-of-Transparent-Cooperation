@@ -22,22 +22,22 @@ def distance_discrete(network1, network2):
 
 # Returns the game matrix of various dilemmas dilemma in tensor form. Shifts the rewards to [-1, 0] to aid learning
 def get_prisoners_dilemma():
-    return torch.tensor([[[3, 0], [5, 1]], [[3, 5], [0, 1]]], dtype=torch.float)/6 - 1
+    return torch.tensor([[3, 0], [5, 1]], dtype=torch.float)/5 - 1
 
 def get_stag_hunt():
-    return torch.tensor([[[2, 0], [1, 1]], [[2, 1], [0, 1]]], dtype=torch.float)/3 - 1
+    return torch.tensor([[2, 0], [1, 1]], dtype=torch.float)/2 - 1
 
-def get_uniform_game():
-    return torch.rand(2, 2, 2, dtype=torch.float) - 1
+def get_uniform_game(action_n=2):
+    return torch.rand(action_n, action_n, dtype=torch.float) - 1
 
-def get_normal_game():
-    return torch.randn(2, 2, 2, dtype=torch.float) - 1
+def get_normal_game(action_n=2):
+    return torch.randn(action_n, action_n, dtype=torch.float)/2 - 1/2
 
 # Defines neural networks used for Agent
 class Net(torch.nn.Module):
     def __init__(self, hidden_size, action_n=2):
         super(Net, self).__init__()
-        self.fc1 = torch.nn.Linear(2*action_n**2 + 1, hidden_size)
+        self.fc1 = torch.nn.Linear(action_n**2 + 1, hidden_size)
         self.fc2 = torch.nn.Linear(hidden_size, action_n)
 
     def forward(self, x):

@@ -41,8 +41,8 @@ class Environment:
         action1 = torch.argmax(output1)
         action2 = torch.argmax(output2)
         # Get the reward of each agent
-        reward1 = game[0, action1, action2]
-        reward2 = game[1, action1, action2]
+        reward1 = game[action1, action2]
+        reward2 = game[action2, action1]
         # Update the score of each agent
         agent1.score += reward1
         agent2.score += reward2
