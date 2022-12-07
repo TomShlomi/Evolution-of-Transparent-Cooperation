@@ -91,9 +91,10 @@ class Environment:
 # Get average scores
 def get_average_scores(agents_generator, game, death_rate=0.0, numtrials=1000, num_rounds=1000, num_games=1):
     average_scores = [0] * num_rounds
+    nets = None
 
     for i in range(numtrials):
-        agents = agents_generator()
+        agents, nets = agents_generator()
 
         # Create and run the environment
         env = Environment(agents, game)
@@ -102,4 +103,4 @@ def get_average_scores(agents_generator, game, death_rate=0.0, numtrials=1000, n
         for i in range(len(scores)):
             average_scores[i] += scores[i]/100
 
-    return average_scores
+    return average_scores, nets
