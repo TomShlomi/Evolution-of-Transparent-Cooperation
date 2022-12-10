@@ -87,12 +87,12 @@ class Environment:
     # Run the environment for a certain number of rounds
     def run(self, num_rounds, num_games, death_rate):
         average_scores = []
-        for i in range(num_rounds):
+        for _ in range(num_rounds):
             average_scores.append(self.round(num_games, death_rate))
         return average_scores
 
 # Get average scores
-def get_average_scores(agents_generator, game_generator, death_rate=0.0, num_trials=1000, num_rounds=1000, num_games=1, random_inputs=0):
+def get_average_scores(agents_generator, game_generator, death_rate=0.0, num_trials=1000, num_rounds=1000, num_games=1, random_inputs=0, verbose=False):
     average_scores = [0] * num_rounds
     nets = None
 
@@ -102,8 +102,10 @@ def get_average_scores(agents_generator, game_generator, death_rate=0.0, num_tri
         # Create and run the environment
         env = Environment(agents=agents, game_generator=game_generator, random_inputs=random_inputs)
         scores = env.run(num_rounds=num_rounds, num_games=num_games, death_rate=death_rate)
-        # Add the average scores/100 to the average average scores
+        # Add the scores divided by the number of trials to the average scores
         for i in range(len(scores)):
             average_scores[i] += scores[i]/num_trials
+        if verbose:
+            print("Trial " + str(i+1) + " average: " + str(sum(scores)/len(scores)))
 
     return average_scores, nets
