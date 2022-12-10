@@ -25,13 +25,18 @@ class Environment:
         self.agents = agents
         self.game_generator = game_generator
         self.random_inputs = random_inputs
+        self.same_distance_fs = True
+        for agent in self.agents:
+            if agent.distance_f != self.agents[0].distance_f:
+                self.same_distance_fs = False
+                break
     
     # Play a one-shot game between two agents
     def play_game(self, game, agent1, agent2):
         game_flattened = game.flatten()
         # Get the distance from the agents to each other (note that the distance is not necessarily symmetric)
         distance1 = agent1.distance_f(agent1.network, agent2.network)
-        distance2 = agent2.distance_f(agent2.network, agent1.network)
+        distance2 = distance1 if self.same_distance_fs else agent2.distance_f(agent2.network, agent1.network)
         # Generate shared normal noise
         noise = torch.randn(self.random_inputs)
         # Combine the game and the distances into a single tensor for each agent
