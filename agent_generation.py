@@ -9,8 +9,9 @@ def generate_twins(distance_f, net_n, agents_per_net, lr=0.001, random_inputs=0)
 
 # Returns a list of agents, some of which initially share the same network, but diverge over time
 def diverging_twins(distance_f, net_n, agents_per_net, lr=0.001, random_inputs=0):
-    nets = [Net(hidden_size=16, random_inputs=random_inputs) for _ in range(net_n)]
+    init_nets = [Net(hidden_size=16, random_inputs=random_inputs) for _ in range(net_n)]
+    nets = []
     for _ in range(agents_per_net - 1):
-        nets += [copy.deepcopy(net) for net in nets]
-    agents = [Agent(net, distance_f=distance_f, lr=lr) for net in nets]
+        nets += [copy.deepcopy(net) for net in init_nets]
+    agents = [Agent(net, distance_f=distance_f, lr=lr) for net in (init_nets + nets)]
     return agents, nets
