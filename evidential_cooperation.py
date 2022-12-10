@@ -21,9 +21,10 @@ class Agent:
 # Create an environment in which RL agents interact through one-shot games and occaisionally reproduce
 class Environment:
     # Initialize the environment with a list of agents and a matrix game generator
-    def __init__(self, agents, game_generator):
+    def __init__(self, agents, game_generator, random_inputs=0):
         self.agents = agents
         self.game_generator = game_generator
+        self.random_inputs = random_inputs
     
     # Play a one-shot game between two agents
     def play_game(self, game, agent1, agent2):
@@ -31,9 +32,11 @@ class Environment:
         # Get the distance from the agents to each other (note that the distance is not necessarily symmetric)
         distance1 = agent1.distance_f(agent1.network, agent2.network)
         distance2 = agent2.distance_f(agent2.network, agent1.network)
+        # Generate shared normal noise
+        noise = torch.randn(self.random_inputs)
         # Combine the game and the distances into a single tensor for each agent
-        input1 = torch.cat((game_flattened, torch.tensor([distance1])))
-        input2 = torch.cat((game_flattened, torch.tensor([distance2])))
+        input1 = torch.cat((game_flattened, torch.tensor([distance1]), noise))
+        input2 = torch.cat((game_flattened, torch.tensor([distance2]), noise))
         # Get the output of each agent's network
         output1 = agent1.network(input1)
         output2 = agent2.network(input2)
@@ -89,7 +92,7 @@ class Environment:
         return average_scores
 
 # Get average scores
-def get_average_scores(agents_generator, game, death_rate=0.0, num_trials=1000, num_rounds=1000, num_games=1):
+def get_average_scores(agents_generator, game_generator, death_rate=0.0, num_trials=1000, num_rounds=1000, num_games=1, random_inputs=0):
     average_scores = [0] * num_rounds
     nets = None
 
@@ -97,7 +100,7 @@ def get_average_scores(agents_generator, game, death_rate=0.0, num_trials=1000, 
         agents, nets = agents_generator()
 
         # Create and run the environment
-        env = Environment(agents, game)
+        env = Environment(agents=agents, game_generator=game_generator, random_inputs=random_inputs)
         scores = env.run(num_rounds=num_rounds, num_games=num_games, death_rate=death_rate)
         # Add the average scores/100 to the average average scores
         for i in range(len(scores)):

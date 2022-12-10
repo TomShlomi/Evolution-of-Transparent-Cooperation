@@ -35,9 +35,9 @@ def get_normal_game(action_n=2):
 
 # Defines neural networks used for Agent
 class Net(torch.nn.Module):
-    def __init__(self, hidden_size, action_n=2):
+    def __init__(self, hidden_size, action_n=2, random_inputs=0):
         super(Net, self).__init__()
-        self.fc1 = torch.nn.Linear(action_n**2 + 1, hidden_size)
+        self.fc1 = torch.nn.Linear(action_n**2 + 1 + random_inputs, hidden_size)
         self.fc2 = torch.nn.Linear(hidden_size, action_n)
 
     def forward(self, x):
