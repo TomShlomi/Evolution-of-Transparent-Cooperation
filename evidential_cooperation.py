@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import random
 import copy
+import matplotlib.pyplot as plt
 from parameter_functions import distance_mse, distance_null, distance_discrete, get_prisoners_dilemma, get_stag_hunt, get_uniform_game, get_normal_game, Net
 
 
@@ -108,9 +109,22 @@ def get_average_scores(agents_generator, game_generator, death_rate=0.0, num_tri
         env = Environment(agents=agents, game_generator=game_generator, random_inputs=random_inputs)
         scores = env.run(num_rounds=num_rounds, num_games=num_games, death_rate=death_rate)
         # Add the scores divided by the number of trials to the average scores
-        for i in range(len(scores)):
-            average_scores[i] += scores[i]/num_trials
+        for j in range(len(scores)):
+            average_scores[j] += scores[j]/num_trials
         if verbose:
             print("Trial " + str(i+1) + " average: " + str(sum(scores)/len(scores)))
 
     return average_scores, nets
+
+# Test a list of nets to see how their distance input affects their odds of cooperating
+def test_net_cooperativity(nets, game_generator, random_inputs, range=(0, 2)):
+    # Get a linspace over range
+    linspace = torch.tensor(np.linspace(range[0], range[1], 100), dtype=torch.float)
+    cooperativities = []
+    for net in nets:
+        outputs = []
+        for i in linspace:
+            input = torch.cat((game_generator().flatten(), torch.tensor([i]), torch.randn(random_inputs)))
+            outputs.append(net(input))
+        cooperativities.append(outputs)
+    return cooperativities
