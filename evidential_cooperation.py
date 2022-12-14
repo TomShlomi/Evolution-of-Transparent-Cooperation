@@ -113,18 +113,18 @@ def get_average_scores(agents_generator, game_generator, death_rate=0.0, num_tri
             average_scores[j] += scores[j]/num_trials
         if verbose:
             print("Trial " + str(i+1) + " average: " + str(sum(scores)/len(scores)))
-
     return average_scores, nets
 
 # Test a list of nets to see how their distance input affects their odds of cooperating
-def test_net_cooperativity(nets, game_generator, random_inputs, range=(0, 2)):
+def test_net_cooperativity(nets, game_generator, random_inputs, randomize=False, range=(0, 2)):
     # Get a linspace over range
     linspace = torch.tensor(np.linspace(range[0], range[1], 100), dtype=torch.float)
     cooperativities = []
     for net in nets:
         outputs = []
         for i in linspace:
-            input = torch.cat((game_generator().flatten(), torch.tensor([i]), torch.randn(random_inputs)))
+            noise = torch.randn(random_inputs) if randomize else torch.zeros(random_inputs)
+            input = torch.cat((game_generator().flatten(), torch.tensor([i]), noise))
             outputs.append(net(input))
         cooperativities.append(outputs)
     return cooperativities
