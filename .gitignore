@@ -5,3 +5,5 @@ graphs/
 .vscode/
 .DS_Store
 stats/
+
+*.png
